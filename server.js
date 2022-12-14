@@ -1,48 +1,47 @@
-/*********************************************************************************
+/********************************************************************************
 *  WEB322 – Assignment 06
-*  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part of this
-*  assignment has been copied manually or electronically from any other source (including web sites) or 
-*  distributed to other students.
+*  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part *  of this assignment has been copied manually or electronically from any other source 
+*  (including 3rd party web sites) or distributed to other students.
 * 
-*  Name: Amitoj Singh    Student ID: 159347210    Date: 02/12/2022 (dd/mm/yyyy)
+*  Name: _Carmel Cheumadjeu Nguelebek__ Student ID: _130451214_ Date: _12/12//2022____
 *
-*  Online (Cyclic) Link: https://long-teal-lemming-cape.cyclic.app/a
+*  Online Link: https://burgundy-bull-sock.cyclic.app
 *
-********************************************************************************/ 
+********************************************************************************/
 
-
-const express = require('express');
-const blogData = require("./blog-service");
+var express = require("express");
+const { sendFile } = require("express/lib/response");
+var path = require("path");
+var blog = require("./blog-service.js");
 const multer = require("multer");
-const cloudinary = require('cloudinary').v2;
-const streamifier = require('streamifier');
+const cloudinary = require('cloudinary').v2
+const streamifier = require('streamifier')
 const exphbs = require("express-handlebars");
-const path = require("path");
 const stripJs = require('strip-js');
-const authData = require('./auth-service');
+const authData = require('./web322-app/auth-service');
 const clientSessions = require('client-sessions');
-const app = express();
 
-const HTTP_PORT = process.env.PORT || 8080;
+var app = express();
+
+var HTTP_PORT = process.env.PORT || 8080;
 
 cloudinary.config({
-    cloud_name: 'Cloud Name',
-    api_key: 'API Key',
-    api_secret: 'API Secret',
+    cloud_name: 'carmelapp',
+    api_key: '113571496754721',
+    api_secret: 'VBMlLHnNTAtRsDbaNZ__ehaORR0',
     secure: true
 });
-
-const upload = multer();
+const upload = multer(); 
 
 app.engine(".hbs", exphbs.engine({
     extname: ".hbs",
     helpers: {
         navLink: function(url, options){
-            return '<li' + 
-                ((url == app.locals.activeRoute) ? ' class="active" ' : '') + 
+            return '<li' +
+                ((url == app.locals.activeRoute) ? ' class="active" ' : '') +
                 '><a href="' + url + '">' + options.fn(this) + '</a></li>';
         },
-        equal: function (lvalue, rvalue, options) {
+        equal: function(lvalue, rvalue, options){
             if (arguments.length < 3)
                 throw new Error("Handlebars Helper equal needs 2 parameters");
             if (lvalue != rvalue) {
@@ -62,25 +61,24 @@ app.engine(".hbs", exphbs.engine({
         }
     }
 }));
-
-app.set('view engine', '.hbs');
+app.set("view engine", ".hbs");
 
 app.use(express.static('public'));
 
 app.use(express.urlencoded({extended: true}));
 
-app.use(function(req,res,next){
+app.use(function (req, res, next) {
     let route = req.path.substring(1);
-    app.locals.activeRoute = "/" + (isNaN(route.split('/')[1]) ? route.replace(/\/(?!.*)/, "") : route.replace(/\/(.*)/, ""));    
+    app.locals.activeRoute = "/" + (isNaN(route.split('/')[1]) ? route.replace(/\/(?!.*)/, "") : route.replace(/\/(.*)/, ""));
     app.locals.viewingCategory = req.query.category;
     next();
 });
 
 app.use(clientSessions({
-    cookieName: "session", // this is the object name that will be added to 'req'
-    secret: "web322-a6-secret", // this should be a long un-guessable string.
-    duration: 2 * 60 * 1000, // duration of the session in milliseconds (2 minutes)
-    activeDuration: 1000 * 60 // the session will be extended by this many ms each request (1 minute)
+    cookieName: "session", 
+    secret: "web322-carmel_secret", 
+    duration: 2 * 60 * 1000, 
+    activeDuration: 1000 * 60 
 }));
 
 app.use(function(req, res, next) {
@@ -96,41 +94,31 @@ function ensureLogin(req, res, next) {
     }
 }
 
-
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
     res.redirect("/blog");
 });
 
-app.get('/about', (req, res) => {
+app.get("/about", (req, res) => {
     res.render("about");
 });
 
 app.get('/blog', async (req, res) => {
 
-    // Declare an object to store properties for the view
     let viewData = {};
 
     try{
 
-        // declare empty array to hold "post" objects
         let posts = [];
 
-        // if there's a "category" query, filter the returned posts by category
         if(req.query.category){
-            // Obtain the published "posts" by category
-            posts = await blogData.getPublishedPostsByCategory(req.query.category);
+            posts = await blog.getPublishedPostsByCategory(req.query.category);
         }else{
-            // Obtain the published "posts"
-            posts = await blogData.getPublishedPosts();
+            posts = await blog.getPublishedPosts();
         }
 
-        // sort the published posts by postDate
         posts.sort((a,b) => new Date(b.postDate) - new Date(a.postDate));
-
-        // get the latest post from the front of the list (element 0)
         let post = posts[0]; 
 
-        // store the "posts" and "post" data in the viewData object (to be passed to the view)
         viewData.posts = posts;
         viewData.post = post;
 
@@ -139,18 +127,54 @@ app.get('/blog', async (req, res) => {
     }
 
     try{
-        // Obtain the full list of "categories"
-        let categories = await blogData.getCategories();
-
-        // store the "categories" data in the viewData object (to be passed to the view)
+        let categories = await blog.getCategories();
         viewData.categories = categories;
     }catch(err){
         viewData.categoriesMessage = "no results"
     }
 
-    // render the "blog" view with all of the data (viewData)
     res.render("blog", {data: viewData})
 
+});
+
+app.get('/blog/:id', async (req, res) => {
+
+    let viewData = {};
+
+    try{
+
+        let posts = [];
+
+        if(req.query.category){
+            posts = await blog.getPublishedPostsByCategory(req.query.category);
+        }else{
+            posts = await blog.getPublishedPosts();
+        }
+
+        posts.sort((a,b) => new Date(b.postDate) - new Date(a.postDate));
+
+        viewData.posts = posts;
+
+    }catch(err){
+        viewData.message = "no results";
+    }
+
+    try{
+        viewData.post = await blog.getPostById(req.params.id);
+    }catch(err){
+        viewData.message = "no results"; 
+    }
+
+    try{
+        let categories = await blog.getCategories();
+
+        viewData.categories = categories;
+    }catch(err){
+        viewData.categoriesMessage = "no results"
+    }
+
+ 
+    res.render("blog", {data: viewData})
 });
 
 app.get('/posts', ensureLogin, (req, res) => {
@@ -158,11 +182,11 @@ app.get('/posts', ensureLogin, (req, res) => {
     let queryPromise = null;
 
     if (req.query.category) {
-        queryPromise = blogData.getPostsByCategory(req.query.category);
+        queryPromise = blog.getPostsByCategory(req.query.category);
     } else if (req.query.minDate) {
-        queryPromise = blogData.getPostsByMinDate(req.query.minDate);
+        queryPromise = blog.getPostsByMinDate(req.query.minDate);
     } else {
-        queryPromise = blogData.getAllPosts();
+        queryPromise = blog.getAllPosts();
     }
 
     queryPromise.then(data => {
@@ -208,7 +232,7 @@ app.post("/posts/add", ensureLogin, upload.single("featureImage"), (req,res)=>{
     function processPost(imageUrl){
         req.body.featureImage = imageUrl;
 
-        blogData.addPost(req.body).then(post=>{
+        blog.addPost(req.body).then(post=>{
             res.redirect("/posts");
         }).catch(err=>{
             res.status(500).send(err);
@@ -217,16 +241,15 @@ app.post("/posts/add", ensureLogin, upload.single("featureImage"), (req,res)=>{
 });
 
 app.get('/posts/add', ensureLogin, (req, res) => {
-    blogData.getCategories().then((data)=>{
+    blog.getCategories().then((data)=>{
         res.render("addPost", {categories: data});
      }).catch((err) => {
-       // set category list to empty array
        res.render("addPost", {categories: [] });
     });
 });
 
 app.get("/posts/delete/:id", ensureLogin, (req,res)=>{
-    blogData.deletePostById(req.params.id).then(()=>{
+    blog.deletePostById(req.params.id).then(()=>{
       res.redirect("/posts");
     }).catch((err)=>{
       res.status(500).send("Unable to Remove Post / Post Not Found");
@@ -234,65 +257,15 @@ app.get("/posts/delete/:id", ensureLogin, (req,res)=>{
 });
 
 app.get('/post/:id', ensureLogin, (req,res)=>{
-    blogData.getPostById(req.params.id).then(data=>{        //ensure login used in most of posts and categories routes
+    blog.getPostById(req.params.id).then(data=>{        
         res.json(data);
     }).catch(err=>{
         res.json({message: err});
     });
 });
 
-app.get('/blog/:id', async (req, res) => {
-
-    // Declare an object to store properties for the view
-    let viewData = {};
-
-    try{
-
-        // declare empty array to hold "post" objects
-        let posts = [];
-
-        // if there's a "category" query, filter the returned posts by category
-        if(req.query.category){
-            // Obtain the published "posts" by category
-            posts = await blogData.getPublishedPostsByCategory(req.query.category);
-        }else{
-            // Obtain the published "posts"
-            posts = await blogData.getPublishedPosts();
-        }
-
-        // sort the published posts by postDate
-        posts.sort((a,b) => new Date(b.postDate) - new Date(a.postDate));
-
-        // store the "posts" and "post" data in the viewData object (to be passed to the view)
-        viewData.posts = posts;
-
-    }catch(err){
-        viewData.message = "no results";
-    }
-
-    try{
-        // Obtain the post by "id"
-        viewData.post = await blogData.getPostById(req.params.id);
-    }catch(err){
-        viewData.message = "no results"; 
-    }
-
-    try{
-        // Obtain the full list of "categories"
-        let categories = await blogData.getCategories();
-
-        // store the "categories" data in the viewData object (to be passed to the view)
-        viewData.categories = categories;
-    }catch(err){
-        viewData.categoriesMessage = "no results"
-    }
-
-    // render the "blog" view with all of the data (viewData)
-    res.render("blog", {data: viewData})
-});
-
 app.get('/categories', ensureLogin, (req, res) => {
-    blogData.getCategories().then((data => {
+    blog.getCategories().then((data => {
         (data.length > 0) ? res.render("categories", {categories: data}) : res.render("categories",{ message: "no results" });
     })).catch(err => {
         res.render("categories", {message: "no results"});
@@ -304,7 +277,7 @@ app.get('/categories/add', ensureLogin, (req, res) => {
 });
 
 app.post('/categories/add', ensureLogin, (req,res)=>{
-    blogData.addCategory(req.body).then(category=>{
+    blog.addCategory(req.body).then(category=>{
         res.redirect("/categories");
     }).catch(err=>{
         res.status(500).send(err.message);
@@ -312,7 +285,7 @@ app.post('/categories/add', ensureLogin, (req,res)=>{
 });
 
 app.get("/categories/delete/:id", ensureLogin, (req,res)=>{
-    blogData.deleteCategoryById(req.params.id).then(()=>{
+    blog.deleteCategoryById(req.params.id).then(()=>{
       res.redirect("/categories");
     }).catch((err)=>{
       res.status(500).send("Unable to Remove Category / Category Not Found");
@@ -329,10 +302,9 @@ app.get("/register", (req,res)=>{
 
 app.post("/register", (req,res)=>{
     authData.registerUser(req.body).then(
-        //render successful if user was registered
         res.render("register", 
         {successMessage: "User created"})
-    ).catch((err) => {  // catching error while registering
+    ).catch((err) => {  
         res.render("register", {errorMessage: err, userName: req.body.userName})
     });
 });
@@ -349,7 +321,7 @@ app.post("/login", (req,res)=>{
     
         res.redirect('/posts');
     }).catch((err) => {
-        res.render("login",     //render login page with error message when exception
+        res.render("login",    
         {errorMessage: err, userName: req.body.userName})
     })
 });
@@ -361,16 +333,16 @@ app.get("/logout", (req,res)=>{
 
 
 app.get("/userHistory", ensureLogin, (req,res)=>{
-    res.render("userHistory");      // rendering userHistory path
+    res.render("userHistory");     
 });
 
 
 app.use((req, res) => {
     res.status(404).render("404");
-})
+});
 
-blogData.initialize()
-.then(authData.initialize)          //  <--------------problem when I did this
+blog.initialize()
+.then(authData.initialize)        
 .then(function(){
     app.listen(HTTP_PORT, function(){
         console.log("app listening on: " + HTTP_PORT)
@@ -378,4 +350,5 @@ blogData.initialize()
 }).catch(function(err){
     console.log("unable to start server: " + err);
 });
+
 
