@@ -1,12 +1,12 @@
 {
-  "name": "web322-app-a6",
+  "name": "web322app",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Amitoj",
+  "author": "carmel",
   "license": "ISC",
   "dependencies": {
     "client-sessions": "^0.8.0",
