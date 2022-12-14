@@ -1,0 +1,56 @@
+<div class="row">
+    <div class="col-md-12">
+        <h1>Register</h1>
+        <hr>       
+        {{#if successMessage}}
+            <div class="alert alert-success"> 
+                <strong>Success:</strong>{{successMessage}}
+                {{!-- Showing Success message if the user was registered successfully --}}
+            </div>
+
+            <a class="btn btn-success pull-right" href="/login">&nbsp;&nbsp;&nbsp;
+            {{!-- After Registering moving to Log in --}}
+            Proceed to Login
+            &nbsp;&nbsp;&nbsp;</a>
+            <br /><br /><br />
+        {{else}}
+            <form method="post" action="/register">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <input class="form-control" name="userName" type="text" placeholder="User Name" required value={{userName}}>
+                        </div>
+                    </div>
+                </div>
+                    
+                    {{!-- User Enter Password --}}
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <input class="form-control" name="password" type="password" placeholder="Password" required>
+                        </div>
+                    </div>
+                </div>
+
+                    {{!-- User enters password matching above --}}
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <input class="form-control" name="password2" type="password" placeholder="Confirm Password" required>
+                        </div>
+                    </div>
+                </div>
+                
+                {{!-- User enters email --}}
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <input class="form-control" name="email" type="email" placeholder="Email Address" required>
+                        </div>
+                    </div>
+                </div>
+                <input type="submit" class="btn btn-success pull-right" value="Register">
+            </form>
+        {{/if}}
+    </div>
+</div>
